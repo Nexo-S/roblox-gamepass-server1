@@ -1,4 +1,3 @@
-// server.js
 const express = require("express");
 const axios = require("axios");
 const cors = require("cors");
@@ -13,13 +12,14 @@ app.get("/gamepasses/:userId", async (req, res) => {
   const { userId } = req.params;
 
   try {
-    const response = await axios.get(`https://inventory.roblox.com/v2/users/${userId}/inventory/game-pass`);
+    // Récupère les assets de type GamePass créés par cet utilisateur
+    const response = await axios.get(`https://catalog.roblox.com/v1/search/items/details?Category=3&CreatorTargetId=${userId}&Limit=30&SortType=3`);
 
     if (response.data && response.data.data) {
       const gamepasses = response.data.data.map(gp => ({
-        Id: gp.assetId,
+        Id: gp.id,
         Name: gp.name,
-        Price: 0
+        Price: gp.price ?? 0,
       }));
 
       res.json(gamepasses);
