@@ -9,32 +9,30 @@ const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 
-// ➤ Route pour récupérer les gamepasses d'un joueur dans un jeu spécifique
-app.get("/gamepasses/:userId/:placeId", async (req, res) => {
-  const { userId, placeId } = req.params;
+app.get("/gamepasses/:userId", async (req, res) => {
+  const { userId } = req.params;
 
   try {
-    const response = await axios.get(`https://games.roblox.com/v1/games/${placeId}/game-passes?userId=${userId}`);
+    const response = await axios.get(`https://inventory.roblox.com/v2/users/${userId}/inventory/game-pass`);
 
     if (response.data && response.data.data) {
       const gamepasses = response.data.data.map(gp => ({
-        Id: gp.id,
+        Id: gp.assetId,
         Name: gp.name,
-        Price: gp.price ?? 0,
+        Price: 0
       }));
 
       res.json(gamepasses);
     } else {
-      res.status(404).json({ error: "No gamepasses found" });
+      res.status(404).json({ error: "Aucun gamepass trouvé" });
     }
 
   } catch (error) {
-    console.error("❌ Erreur lors de la récupération :", error.message);
-    res.status(500).json({ error: "Internal Server Error" });
+    console.error("❌ Erreur :", error.message);
+    res.status(500).json({ error: "Erreur serveur" });
   }
 });
 
-// ➤ Test route
 app.get("/", (req, res) => {
   res.send("✅ Serveur Gamepass opérationnel !");
 });
