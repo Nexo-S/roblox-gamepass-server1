@@ -1,3 +1,4 @@
+// server.js
 const express = require("express");
 const axios = require("axios");
 const cors = require("cors");
@@ -8,12 +9,20 @@ const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 
-app.get("/gamepasses/:userId", async (req, res) => {
-  const { userId } = req.params;
+// ✅ Route de test simple
+app.get("/test", (req, res) => {
+  res.send("✅ Serveur actif !");
+});
+
+// ✅ Route pour récupérer les gamepasses d’un joueur dans un jeu
+app.get("/gamepasses/:userId/:placeId", async (req, res) => {
+  const { userId, placeId } = req.params;
 
   try {
-    // Récupère les assets de type GamePass créés par cet utilisateur
-    const response = await axios.get(`https://catalog.roblox.com/v1/search/items/details?Category=3&CreatorTargetId=${userId}&Limit=30&SortType=3`);
+    const url = `https://games.roblox.com/v1/games/${placeId}/game-passes?userId=${userId}`;
+    console.log("🔎 Appel API vers :", url);
+
+    const response = await axios.get(url);
 
     if (response.data && response.data.data) {
       const gamepasses = response.data.data.map(gp => ({
@@ -24,19 +33,17 @@ app.get("/gamepasses/:userId", async (req, res) => {
 
       res.json(gamepasses);
     } else {
-      res.status(404).json({ error: "Aucun gamepass trouvé" });
+      res.status(404).json({ error: "Aucun gamepass trouvé." });
     }
 
   } catch (error) {
-    console.error("❌ Erreur :", error.message);
-    res.status(500).json({ error: "Erreur serveur" });
+    console.error("❌ Erreur lors de la récupération :", error.message);
+    res.status(500).json({ error: "Erreur serveur." });
   }
 });
 
-app.get("/", (req, res) => {
-  res.send("✅ Serveur Gamepass opérationnel !");
-});
-
+// ✅ Lancer le serveur
 app.listen(PORT, () => {
   console.log(`🚀 Serveur lancé sur le port ${PORT}`);
 });
+
